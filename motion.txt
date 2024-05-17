@@ -1,0 +1,142 @@
+// Function to generate a code
+function generateCode() {
+    return Math.floor(Math.random() * 1000) + 1;
+}
+
+// Function to check if the code is correct
+function checkCode(userCode, correctCode) {
+    return userCode === correctCode;
+}
+
+// Server state
+class Server {
+    constructor() {
+        this.active = false;
+        this.participants = {};
+        this.creatorCode = null;
+        this.chatLog = [];
+    }
+
+    activate() {
+        this.active = true;
+        console.log("Server activated");
+    }
+
+    join(user) {
+        if (this.active) {
+            this.participants[user] = [];
+            console.log(`${user} has joined the server`);
+        } else {
+            console.log("Server is not active");
+        }
+    }
+
+    listParticipants() {
+        console.log("Current participants:", Object.keys(this.participants).join(", "));
+    }
+
+    createCode() {
+        this.creatorCode = generateCode();
+        console.log(`Create code: ${this.creatorCode}`);
+        this.activate();
+    }
+
+    sendMessage(user, message) {
+        if (this.participants[user]) {
+            this.chatLog.push({ user, message });
+            console.log(`${user}: ${message}`);
+        } else {
+            console.log("User not in server");
+        }
+    }
+
+    showChatLog() {
+        console.log("Chat Log:");
+        this.chatLog.forEach(entry => console.log(`${entry.user}: ${entry.message}`));
+    }
+}
+
+// Function to handle user attempts to join
+function attemptJoin(server, user) {
+    let attempts = 3;
+    while (attempts > 0) {
+        const userInputCode = parseInt(prompt(`${user}, enter the create code:`), 10);
+        if (checkCode(userInputCode, server.creatorCode)) {
+            server.join(user);
+            return;
+        } else {
+            attempts--;
+            if (attempts > 0) {
+                console.log(`That's wrong. You have ${attempts} attempts left.`);
+            } else {
+                console.log("That's wrong and you can't join a server because you have no friends haha");
+            }
+        }
+    }
+}
+
+// Function to simulate chatroom interaction
+function chatRoom(server, user) {
+    let chatting = true;
+    while (chatting) {
+        const message = prompt(`${user}, enter your message (or type 'exit' to leave the chatroom):`);
+        if (message.toLowerCase() === 'exit') {
+            chatting = false;
+        } else {
+            server.sendMessage(user, message);
+        }
+    }
+}
+
+// Main function to choose to create or join a server
+function main() {
+    const choice = prompt("Do you want to create a server or join a server? (create/join)");
+
+    if (choice === "create") {
+        const server = new Server();
+        server.createCode();
+        console.log("You have created a server. Share your code with others to let them join.");
+        console.log("Waiting for others to join...");
+
+        // Simulating other users trying to join
+        const ousers = ["User1", "User2", "User3"];
+        ousers.forEach((user) => {
+            attemptJoin(server, user);
+        });
+
+        // Listing participants
+        server.listParticipants();
+
+        // Simulate chatroom interaction
+        ousers.forEach((user) => {
+            chatRoom(server, user);
+        });
+
+        // Show chat log
+        server.showChatLog();
+
+    } else if (choice === "join") {
+        const serverCode = parseInt(prompt("Enter the server code to join:"), 10);
+        const server = new Server();
+        server.creatorCode = serverCode;
+        server.activate();
+
+        const user = prompt("Enter your username to join the server:");
+        attemptJoin(server, user);
+
+        // Listing participants
+        server.listParticipants();
+
+        // Simulate chatroom interaction
+        chatRoom(server, user);
+
+        // Show chat log
+        server.showChatLog();
+
+    } else {
+        console.log("Invalid choice. Please restart and choose 'create' or 'join'.");
+    }
+}
+
+// Run the main function
+main();
